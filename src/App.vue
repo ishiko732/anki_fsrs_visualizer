@@ -155,7 +155,7 @@ ChartJS.register(Title, Tooltip, Legend, PointElement, LineElement, CategoryScal
 
 function nameof<T>(name: keyof T) { return name; }
 
-function modeOf(mode: keyof Card) {
+function modeOf(mode: Exclude<keyof Card,'last_review'|'retrievability'>) {
     if (mode === 'interval') {
         return 'Ivl';
     } else if (mode === 'stability') {
@@ -169,7 +169,7 @@ function modeOf(mode: keyof Card) {
     }
 }
 
-function cardDataFormat(card: Card, mode: keyof Card) {
+function cardDataFormat(card: Card, mode: Exclude<keyof Card,'last_review'|'retrievability'>) {
     if (mode === 'interval' || mode === 'cumulativeInterval') {
         return card[mode].toFixed(0);
     } else {
@@ -177,7 +177,7 @@ function cardDataFormat(card: Card, mode: keyof Card) {
     }
 }
 
-const mode = ref<keyof Card>("interval");
+const mode = ref<Exclude<keyof Card,'last_review'|'retrievability'>>("interval");
 const animation = ref(true);
 const names = ['', 'Again', 'Hard', 'Good', 'Easy'];
 
@@ -197,7 +197,7 @@ const options = createOptions({
     },
     tooltip_function: (item: MyData) => {
         const review_text = item.review.join('');
-        return `${review_text}: ${names[item.x]}, Stability: ${item.card.stability.toFixed(2)}, Difficulty: ${item.card.displayDifficulty.toFixed(0)}%`;
+        return `${review_text}: ${names[item.x]}, Stability: ${item.card.stability.toFixed(2)}, Difficulty: ${item.card.displayDifficulty.toFixed(0)}% Retrievability: [${item.retrievability.map(a=>`${a.toFixed(2)}%`).join(', ')}]`;
     }
 });
 
@@ -212,6 +212,7 @@ function convertCardToMyData(card: Card, review: number[]): MyData {
         card: card,
         review: review,
         label: getDataLabel(card),
+        retrievability:card.retrievability
     };
 }
 
@@ -261,7 +262,7 @@ const w_text = computed({
     set: (newValue) => fsrs_params.value.w = resize_array(newValue.replace(', ', ',').split(',').map(a => parseFloat(a) || 0), default_parameters.length, 0.0)
 });
 
-function resize_array<T>(arr: T[], length: number, filler: T) : T[] {
+function resize_array<T>(arr: T[], length: number, filler: T): T[] {
     return arr.concat(new Array(Math.max(length - arr.length, 0)).fill(filler));
 }
 
@@ -287,5 +288,6 @@ export interface MyData {
     label: string,
     review: number[],
     card: Card,
+    retrievability:number[]
 }
 </script>
